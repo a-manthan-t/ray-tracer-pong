@@ -1,0 +1,20 @@
+{
+  "langrev": "1",
+  "warnings": ["no-unused"],
+  "authors": ["Manthan Thakkar"],
+  "version": "1.0.0",
+  "sources": ["src/**"],
+  "c-include-dirs": ["/opt/homebrew/include"],
+  "linker-search-paths": ["/opt/homebrew/Cellar/raylib/5.5/lib"],
+  "linked-libraries": ["raylib"],
+  "test-sources": ["test/**"],
+  "build-dir": "build",
+  "output": "build",
+  "targets": {
+    "macos": {
+      "type": "executable"
+    }
+  },
+  "cpu": "native",
+  "opt": "O5"
+}
