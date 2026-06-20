@@ -1,16 +1,34 @@
 module tracer;
 
+import std::io;
+
 import geometry;
+import pong;
+
+<* Task for a pool to trace all pixels in a range. *>
+fn void trace_range(int[2]* range) {
+    for (int row = (*range)[0]; row < (*range)[1]; row++) {
+        for (int col = 0; col < pong::WIDTH; col++) {
+            ColourPerc p = tracer::trace(
+                (Vec3) { (float) col - pong::WIDTH / 2, pong::DEPTH, pong::HEIGHT / 2 - (float) row }.normalize(),
+                {},
+                true,
+                pong::BOUNCES,
+            ) * 255;
+            pong::frame_buffer[row * pong::WIDTH + col] = (Colour) { (char) p.r, (char) p.g, (char) p.b, 255 };
+        }
+    }
+}
 
 <* Trace a ray of light to find its colour. *>
-fn ColourPerc trace(Vec3 direction, Vec3 offset, Shape[] shapes, bool in_air, int bounces_left) {
+fn ColourPerc trace(Vec3 direction, Vec3 offset, bool in_air, int bounces_left) {
     direction = direction.normalize();
 
     // Find object light ray collides with.
     float t = float::max;
     Shape* seen = null;
 
-    foreach (&shape : shapes) {
+    foreach (&shape : pong::scene) {
         float new_t = shape.intersect(direction, offset);
         if (new_t < t) {
             t = new_t;
@@ -36,7 +54,7 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, Shape[] shapes, bool in_air, in
     // Ambient light and emitted light.
     ColourPerc result = (geometry::SKY + seen.material.emission) * seen.material.base;
 
-    foreach NEXT_LIGHT: (&light : shapes) {
+    foreach NEXT_LIGHT: (&light : pong::scene) {
         if (light.material.emission == 0 || light == seen) {
             continue;
         }
@@ -45,7 +63,7 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, Shape[] shapes, bool in_air, in
         Vec3 light_offset = intersection + 1e-6 * normal;
         float lt = light.intersect(light_dir, light_offset);
 
-        foreach (&shape : shapes) {
+        foreach (&shape : pong::scene) {
             if (shape != seen && shape != light && shape.intersect(light_dir, light_offset) < lt) {
                 continue NEXT_LIGHT;
             }
@@ -65,7 +83,6 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, Shape[] shapes, bool in_air, in
             result += seen.material.specular * trace(
                 direction.reflect(normal),
                 intersection + 1e-6 * normal,
-                shapes,
                 in_air,
                 bounces_left - 1
             );
@@ -78,7 +95,6 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, Shape[] shapes, bool in_air, in
             result += trace(
                 direction.refract(normal, refr_idx),
                 intersection - 1e-6 * normal,
-                shapes,
                 !in_air,
                 bounces_left - 1
             ) * (1 - seen.material.opacity);

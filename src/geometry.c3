@@ -17,7 +17,7 @@ enum Material : (
     float emission,     // How much light the object emits.
     float refr_idx,     // The ratio of the speed of light in the material vs a vacuum.
 ) {
-    RED_GLASS { { 1, 0, 0 }, 0.2, 0.5, 16, 0, 1.5 },
+    RED_GLASS { { 1, 0, 0 }, 0.2, 0.5, 16, 0.5, 1.5 },
     GREY_METAL { { 0.5, 0.5, 0.5 }, 1, 0.25, 64, 0, 0 },
     GREEN_BLOCK { { 0.125, 1, 0.5 }, 1, 0.75, 128, 0, 1.2 },
     LAMP { { 0.99, 0.94, 0.65 }, 1, 0, 0, 1, 0 },

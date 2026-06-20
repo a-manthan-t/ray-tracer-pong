@@ -35,6 +35,7 @@ struct Buffer {
 
 extern fn Canvas make_canvas(CInt width, CInt height, Color tint) @cname("GenImageColor");
 extern fn void free_canvas(Canvas canvas) @cname("UnloadImage");
+extern fn float frame_time() @cname("GetFrameTime");
 extern fn void draw_fps(CInt x, CInt y) @cname("DrawFPS");
 extern fn void clear(Color color) @cname("ClearBackground");
 
