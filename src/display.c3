@@ -35,6 +35,8 @@ struct Buffer {
 
 extern fn Canvas make_canvas(CInt width, CInt height, Color tint) @cname("GenImageColor");
 extern fn void free_canvas(Canvas canvas) @cname("UnloadImage");
+extern fn void draw_fps(CInt x, CInt y) @cname("DrawFPS");
+extern fn void clear(Color color) @cname("ClearBackground");
 
 extern fn Buffer load_buffer(Canvas canvas) @cname("LoadTextureFromImage");
 extern fn void free_buffer(Buffer buffer) @cname("UnloadTexture");
@@ -50,7 +52,9 @@ extern fn void draw_buffer(Buffer buffer, CInt posX, CInt posY, Color tint) @cna
 
 fn void update_frame(Buffer buffer, geometry::Colour[] pixels) {
     begin_drawing();
+    clear({});
     update_buffer(buffer, pixels);
     draw_buffer(buffer, 0, 0, { 255, 255, 255, 255 });
+    draw_fps(5, 5);
     end_drawing();
 }
