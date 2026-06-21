@@ -6,7 +6,7 @@ A real time ray tracing engine, with a 3D version of Pong implemented for a demo
   <img src="./ray_tracer_pong.gif" height=400 alt="demo">
 </p>
 
-The engine is entirely CPU based and achieves 30 FPS on average. Use `W/S` to control the left paddle and `up/down` to control the right one.
+The engine is entirely CPU based and achieves 40 FPS on average. Use `W/S` to control the left paddle and `up/down` to control the right one.
 
 Compile and run with `c3c build/run`. Requires Raylib to be installed for showing a window and game logic (may need to change `project.json` to link Raylib if not on MacOS).
 
