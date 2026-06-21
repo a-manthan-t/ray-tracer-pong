@@ -35,8 +35,6 @@ struct Buffer {
 
 extern fn Canvas make_canvas(CInt width, CInt height, Color tint) @cname("GenImageColor");
 extern fn void free_canvas(Canvas canvas) @cname("UnloadImage");
-extern fn float frame_time() @cname("GetFrameTime");
-extern fn void draw_fps(CInt x, CInt y) @cname("DrawFPS");
 extern fn void clear(Color color) @cname("ClearBackground");
 
 extern fn Buffer load_buffer(Canvas canvas) @cname("LoadTextureFromImage");
@@ -50,6 +48,7 @@ fn Buffer make_gpu_buffer(int width, int height) {
 
 extern fn void update_buffer(Buffer texture, void* pixels) @cname("UpdateTexture");
 extern fn void draw_buffer(Buffer buffer, CInt posX, CInt posY, Color tint) @cname("DrawTexture");
+extern fn void draw_fps(CInt x, CInt y) @cname("DrawFPS");
 
 fn void update_frame(Buffer buffer, geometry::Colour[] pixels) {
     begin_drawing();
@@ -59,3 +58,13 @@ fn void update_frame(Buffer buffer, geometry::Colour[] pixels) {
     draw_fps(5, 5);
     end_drawing();
 }
+
+constdef Key {
+    W    = 87,
+    S    = 83,
+    UP   = 265,
+    DOWN = 264,
+}
+
+extern fn bool is_key_down(Key key) @cname("IsKeyDown");
+extern fn float frame_time() @cname("GetFrameTime");

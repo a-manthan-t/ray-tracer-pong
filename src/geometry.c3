@@ -17,9 +17,10 @@ enum Material : (
     float emission,     // How much light the object emits.
     float refr_idx,     // The ratio of the speed of light in the material vs a vacuum.
 ) {
-    RED_GLASS { { 1, 0, 0 }, 0.2, 0.5, 16, 0.5, 1.5 },
+    RED_GLASS { { 1, 0, 0 }, 0.2, 0.75, 32, 0.3, 1.25 },
     GREY_METAL { { 0.5, 0.5, 0.5 }, 1, 0.25, 64, 0, 0 },
-    GREEN_BLOCK { { 0.125, 1, 0.5 }, 1, 0.75, 128, 0, 1.2 },
+    GREEN_ORB { { 0.125, 1, 0.5 }, 1, 0.75, 128, 0, 0 },
+    BLUE_BLOCK { { 0.125, 0.5, 1 }, 1, 0.25, 32, 0, 0 },
     LAMP { { 0.99, 0.94, 0.65 }, 1, 0, 0, 1, 0 },
 }
 
@@ -65,7 +66,7 @@ fn float Shape.intersect(&self, Vec3 v, Vec3 o) {
             float t1 = -b / 2 - discriminant;
 
             // Choose the exit point if the camera is inside the sphere.
-            t = t1 <= 1e-6 ? -b / 2 + discriminant : t1;
+            t = t1 <= 1e-2 ? -b / 2 + discriminant : t1;
         case CUBOID:
             // Require pos <= r <= dim + w => (pos - o)/v <= t <= (pos + dim - o)/v
             Vec3 t_min_pre = (self.position - o) / v;
@@ -80,20 +81,20 @@ fn float Shape.intersect(&self, Vec3 v, Vec3 o) {
 
             if (t_enter <= t_exit) {
                 // Choose the exit point if the camera is inside the cuboid.
-                t = t_enter <= 1e-6 ? t_exit : t_enter;
+                t = t_enter <= 1e-2 ? t_exit : t_enter;
             }
         case PLANE:
             // r.n = d -> Also d = p.n
             // r = vt + o -> t is some float
             // (vt + o).n = d => t(v.n) + o.n = d => t = (p.n - o.n)/(v.n) = (p - o).n / (v.n)
             float v_dot_n = v.dot(self.layout.normal);
-            if (math::abs(v_dot_n) >= 1e-6) {
+            if (math::abs(v_dot_n) >= 1e-2) {
                 t = (self.position - o).dot(self.layout.normal) / v_dot_n;
             }
     }
 
     // Object is behind camera if t is negative (halfline should only go forwards).
-    return t <= 1e-6 ? float::max : t;
+    return t <= 1e-2 ? float::max : t;
 }
 
 <* Find the normal to the shape at a given point of intersection. *>
@@ -105,11 +106,11 @@ fn Vec3 Shape.normal_at(&self, Vec3 p) {
             Vec3 min = self.position;
             Vec3 max = self.position + self.layout.dimensions;
 
-            if (p.x - min.x <= 1e-4f) return { -1, 0, 0 };
-            if (p.x - max.x <= 1e-4f) return { 1, 0, 0 };
-            if (p.y - min.y <= 1e-4f) return { 0, -1, 0 };
-            if (p.y - max.y <= 1e-4f) return { 0, 1, 0 };
-            if (p.z - min.z <= 1e-4f) return { 0, 0, 1 };
+            if (p.x - min.x <= 1e-2f) return { -1, 0, 0 };
+            if (p.x - max.x <= 1e-2f) return { 1, 0, 0 };
+            if (p.y - min.y <= 1e-2f) return { 0, -1, 0 };
+            if (p.y - max.y <= 1e-2f) return { 0, 1, 0 };
+            if (p.z - min.z <= 1e-2f) return { 0, 0, 1 };
             return { 0, 0, 1 };
         case PLANE:
             return self.layout.normal;

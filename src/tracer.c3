@@ -1,21 +1,48 @@
 module tracer;
 
 import std::io;
+import std::thread::threadpool;
 
+import display;
+import game;
 import geometry;
 import pong;
 
+const int WIDTH = 720;
+const int HEIGHT = 480;
+const int DEPTH = 480;
+const int BOUNCES = 5;
+
+Buffer gpu_buffer;
+Colour[WIDTH * HEIGHT] frame_buffer;
+
+int core_count;
+int[2][] ranges;
+FixedThreadPool render_pool;
+
+<* Carries our ray tracing and draws a frame. *>
+fn void draw_frame() {
+    foreach (range : ranges) {
+        render_pool.push((ThreadPoolFn) &trace_range, range)!!;
+    }
+
+    render_pool.join();
+    display::update_frame(gpu_buffer, &frame_buffer);
+}
+
 <* Task for a pool to trace all pixels in a range. *>
-fn void trace_range(int[2]* range) {
-    for (int row = (*range)[0]; row < (*range)[1]; row++) {
-        for (int col = 0; col < pong::WIDTH; col++) {
+fn void trace_range(ranges...) {
+    int[2] range = *(int[2]*) ranges[0].ptr;
+
+    for (int row = range[0]; row < range[1]; row++) {
+        for (int col = 0; col < WIDTH; col++) {
             ColourPerc p = tracer::trace(
-                (Vec3) { (float) col - pong::WIDTH / 2, pong::DEPTH, pong::HEIGHT / 2 - (float) row }.normalize(),
+                (Vec3) { (float) col - WIDTH / 2, DEPTH, HEIGHT / 2 - (float) row }.normalize(),
                 {},
                 true,
-                pong::BOUNCES,
+                BOUNCES,
             ) * 255;
-            pong::frame_buffer[row * pong::WIDTH + col] = (Colour) { (char) p.r, (char) p.g, (char) p.b, 255 };
+            frame_buffer[row * WIDTH + col] = (Colour) { (char) p.r, (char) p.g, (char) p.b, 255 };
         }
     }
 }
@@ -28,7 +55,7 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, bool in_air, int bounces_left) 
     float t = float::max;
     Shape* seen = null;
 
-    foreach (&shape : pong::scene) {
+    foreach (&shape : game::scene) {
         float new_t = shape.intersect(direction, offset);
         if (new_t < t) {
             t = new_t;
@@ -54,16 +81,16 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, bool in_air, int bounces_left) 
     // Ambient light and emitted light.
     ColourPerc result = (geometry::SKY + seen.material.emission) * seen.material.base;
 
-    foreach NEXT_LIGHT: (&light : pong::scene) {
+    foreach NEXT_LIGHT: (&light : game::scene) {
         if (light.material.emission == 0 || light == seen) {
             continue;
         }
 
         Vec3 light_dir = (light.position - intersection).normalize();
-        Vec3 light_offset = intersection + 1e-6 * normal;
+        Vec3 light_offset = intersection + 1e-2 * normal;
         float lt = light.intersect(light_dir, light_offset);
 
-        foreach (&shape : pong::scene) {
+        foreach (&shape : game::scene) {
             if (shape != seen && shape != light && shape.intersect(light_dir, light_offset) < lt) {
                 continue NEXT_LIGHT;
             }
@@ -82,7 +109,7 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, bool in_air, int bounces_left) 
         if (seen.material.specular > 0) {
             result += seen.material.specular * trace(
                 direction.reflect(normal),
-                intersection + 1e-6 * normal,
+                intersection + 1e-2 * normal,
                 in_air,
                 bounces_left - 1
             );
@@ -94,7 +121,7 @@ fn ColourPerc trace(Vec3 direction, Vec3 offset, bool in_air, int bounces_left) 
             result *= seen.material.opacity;
             result += trace(
                 direction.refract(normal, refr_idx),
-                intersection - 1e-6 * normal,
+                intersection - 1e-2 * normal,
                 !in_air,
                 bounces_left - 1
             ) * (1 - seen.material.opacity);
