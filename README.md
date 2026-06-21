@@ -1,4 +1,4 @@
-# Ray Tracer Pong
+# Real Time Ray Tracing With Pong
 
 A real time ray tracing engine, with a 3D version of Pong implemented for a demo. The gif below shows a game of Pong, with reflections, shadows, transparency, and soft lighting from emissive materials visible in the scene.
 
