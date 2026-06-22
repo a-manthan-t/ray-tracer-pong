@@ -31,8 +31,8 @@ fn void draw_frame() {
 }
 
 <* Task for a pool to trace all pixels in a range. *>
-fn void trace_range(ranges...) {
-    int[2] range = *(int[2]*) ranges[0].ptr;
+fn void trace_range(int[]... ranges) {
+    int[] range = ranges[0];
 
     for (int row = range[0]; row < range[1]; row++) {
         for (int col = 0; col < WIDTH; col++) {
